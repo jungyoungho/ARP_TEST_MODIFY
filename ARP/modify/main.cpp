@@ -16,7 +16,7 @@
 
 struct makearphdr
 {
-    uint8_t ar_hrd;
+    uint16_t ar_hrd;
     uint16_t ar_pro;
     uint8_t ar_hln;
     uint8_t ar_pln;
@@ -39,15 +39,15 @@ int main(int argc, char *argv[])
         //printf("\n%x\n",sm); // why 2bytes is gone??
         tm=argv[5];
 
-        u_int16_t ether_type=0x0806;
+        u_int16_t ether_type=htons(0x0806);
 //---------------------------------------------------------------------------------------arp protocol
         struct makearphdr ap;
 
-        ap.ar_hrd = 0x0001;
-        ap.ar_pro = 0x0800;
+        ap.ar_hrd = htons(0x0001);
+        ap.ar_pro = htons(0x0800);
         ap.ar_hln = 0x06;
         ap.ar_pln = 0x04;
-        ap.ar_op  = 0x0002;
+        ap.ar_op  = htons(0x0002);
         Mac arp_sm,arp_tm;
 
 
@@ -62,19 +62,24 @@ int main(int argc, char *argv[])
         inet_pton(AF_INET, arp_tip, &t_ip);
 
 
-        char packet[42]; //make complete packet
-/*
-        sprintf(packet, "%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%04x%04x%04x%02x%02x%04x%02x%02x%02x%02x%02x%02x%x%02x%02x%02x%02x%02x%02x%x",  -----> fix!!
-               *target_mac,*(target_mac+1),*(target_mac+2),*(target_mac+3),*(target_mac+4),*(target_mac+5),
-               *sender_mac,*(sender_mac+1),*(sender_mac+2),*(sender_mac+3),*(sender_mac+4),*(sender_mac+5),
-               ether_type,ap.ar_hrd,ap.ar_pro,ap.ar_hln,ap.ar_pln,ap.ar_op,
-               *arp_smac,*(arp_smac+1),*(arp_smac+2),*(arp_smac+3),*(arp_smac+4),*(arp_smac+5),sendip,
-               *arp_tmac,*(arp_tmac+1),*(arp_tmac+2),*(arp_tmac+3),*(arp_tmac+4),*(arp_tmac+5),targip);
-*/
+        uint8_t packet[42]; //make complete packet
+
+        memset(packet,0,42);
+        memcpy(packet,&sm,6);
+        memcpy(packet+6,&tm,6);
+        memcpy(packet+12,&ether_type,2);
+        memcpy(packet+14,&ap.ar_hrd,2);
+        memcpy(packet+16,&ap.ar_pro,2);
+        memcpy(packet+18,&ap.ar_hln,1);
+        memcpy(packet+19,&ap.ar_pln,1);
+        memcpy(packet+20,&ap.ar_op,2);
+        memcpy(packet+22,&arp_sm,6);
+        memcpy(packet+28,&s_ip,4);
+        memcpy(packet+32,&arp_tm,6);
+        memcpy(packet+38,&t_ip,4);
+    
         pcap_t *fp;
         char errbuf[PCAP_ERRBUF_SIZE];
-
-
         //---------------------------------------------------------------------------------------send arp
         fp=pcap_open_live(dev,BUFSIZ,0,1,errbuf);
         if(fp==NULL)
