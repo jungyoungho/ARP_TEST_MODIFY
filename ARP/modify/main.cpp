@@ -36,7 +36,7 @@ int main(int argc, char *argv[])
 //--------------------------------------------------------------------------------------ethernet protocol
         Mac sm,tm;
         sm=argv[4];
-        printf("\n%x\n",sm); // why 2bytes is gone??
+        //printf("\n%x\n",sm); // why 2bytes is gone??
         tm=argv[5];
 
         u_int16_t ether_type=0x0806;
