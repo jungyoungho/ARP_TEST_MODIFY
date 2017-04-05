@@ -35,10 +35,9 @@ int main(int argc, char *argv[])
         char *dev=argv[1];
 //--------------------------------------------------------------------------------------ethernet protocol
         Mac sm,tm;
-        sm=argv[4];
-        //printf("\n%x\n",sm); // why 2bytes is gone??
-        tm=argv[5];
-
+        tm=argv[4];
+        sm=argv[5];
+       
         u_int16_t ether_type=htons(0x0806);
 //---------------------------------------------------------------------------------------arp protocol
         struct makearphdr ap;
