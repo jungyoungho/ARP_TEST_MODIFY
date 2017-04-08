@@ -25,10 +25,26 @@ struct makearphdr
 
 int main(int argc, char *argv[])
 {
-    char *dev=argv[1];
+    
     //make request
-    uint64_t des_mac//0xffffffffffff;
-    uint64_t sor_mac//0x000c293cc8f1;
+    char *dev=argv[1];
+    /* auto check idea -> auto check success but string..
+    FILE *mymac;
+    char buff[1024];
+    mymac = popen("ifconfig -a | grep ether | awk '{print $2}'","r"); //command check my mac
+    if(NULL==mymac)
+    {
+        printf("error\n");
+        return -1;
+    }
+    while(fgets(buff,1024,mymac))
+        printf("%s",buff); // no string............-> change :(
+
+    pclose(mymac);
+
+*/
+    uint64_t des_mac=0xffffffffffff;
+    uint8_t sor_mac;//auto check..
 
     uint16_t etype = htons(0x0806);
 
@@ -40,14 +56,14 @@ int main(int argc, char *argv[])
     rq.ar_pln = 0x04;
     rq.ar_op  = htons(0x0001);
 
-    uint64_t arpsm//0x000c293cc8f1;
+    uint8_t arpsm;//auto check;
 
 
     char *seip=argv[2];
     uint32_t asip;
     inet_pton(AF_INET, seip, &asip);
 
-    uint64_t arptm//0xffffffffffff;
+    uint64_t arptm=0xffffffffffff;
 
     char *taip=argv[3];
     uint32_t atip;
