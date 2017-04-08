@@ -26,13 +26,10 @@ struct makearphdr
 int main(int argc, char *argv[])
 {
     char *dev=argv[1];
-    uint8_t des_mac = 0xffffffffffff;
-    uint8_t sor_mac[6];
-    int mymac= system("ifconfig -a | grep ether | awk '{print $2}'"); //trash code
-    sscanf((const char*)mymac,"%x:%x:%x:%x:%x:%x",&sor_mac[0],&sor_mac[1],&sor_mac[2],&sor_mac[3],&sor_mac[4],&sor_mac[5]);
+    //make request
+    uint16_t des_mac//0xffffffffffff;
+    uint16_t sor_mac//0x000c293cc8f1;
 
-    for(int i=0; i<6; i++)
-    printf("%x",sor_mac[i]);
     uint16_t etype = htons(0x0806);
 
     struct makearphdr rq;
@@ -43,14 +40,14 @@ int main(int argc, char *argv[])
     rq.ar_pln = 0x04;
     rq.ar_op  = htons(0x0001);
 
-    uint8_t arpsm[6];
-    sscanf((const char*)mymac,"%x:%x:%x:%x:%x:%x",&arpsm[0],&arpsm[1],&arpsm[2],&arpsm[3],&arpsm[4],&arpsm[5]);
+    uint16_t arpsm//0x000c293cc8f1;
+
 
     char *seip=argv[2];
     uint32_t asip;
     inet_pton(AF_INET, seip, &asip);
 
-    uint8_t arptm=0xffffffffffff;
+    uint16_t arptm//0xffffffffffff;
 
     char *taip=argv[3];
     uint32_t atip;
