@@ -27,8 +27,8 @@ int main(int argc, char *argv[])
 {
     char *dev=argv[1];
     //make request
-    uint16_t des_mac//0xffffffffffff;
-    uint16_t sor_mac//0x000c293cc8f1;
+    uint64_t des_mac//0xffffffffffff;
+    uint64_t sor_mac//0x000c293cc8f1;
 
     uint16_t etype = htons(0x0806);
 
@@ -40,14 +40,14 @@ int main(int argc, char *argv[])
     rq.ar_pln = 0x04;
     rq.ar_op  = htons(0x0001);
 
-    uint16_t arpsm//0x000c293cc8f1;
+    uint64_t arpsm//0x000c293cc8f1;
 
 
     char *seip=argv[2];
     uint32_t asip;
     inet_pton(AF_INET, seip, &asip);
 
-    uint16_t arptm//0xffffffffffff;
+    uint64_t arptm//0xffffffffffff;
 
     char *taip=argv[3];
     uint32_t atip;
