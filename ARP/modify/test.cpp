@@ -43,7 +43,8 @@ int main(int argc, char *argv[])
     pclose(mymac);
 
 */
-    uint64_t des_mac=0xffffffffffff;
+    Mac des_mac;
+    des_mac="ff:ff:ff:ff:ff:ff"; //broadcast
     uint8_t sor_mac;//auto check..
 
     uint16_t etype = htons(0x0806);
@@ -63,7 +64,8 @@ int main(int argc, char *argv[])
     uint32_t asip;
     inet_pton(AF_INET, seip, &asip);
 
-    uint64_t arptm=0xffffffffffff;
+    Mac arptm;
+    arptm = "ff:ff:ff:ff:ff:ff";//broadcast
 
     char *taip=argv[3];
     uint32_t atip;
