@@ -28,7 +28,7 @@ int main(int argc, char *argv[])
     char *dev=argv[1];
     uint8_t des_mac = 0xffffffffffff;
     uint8_t sor_mac[6];
-    int mymac= system("ifconfig -a | grep ether | awk '{print $2}'"); //tresh code
+    int mymac= system("ifconfig -a | grep ether | awk '{print $2}'"); //trash code
     sscanf((const char*)mymac,"%x:%x:%x:%x:%x:%x",&sor_mac[0],&sor_mac[1],&sor_mac[2],&sor_mac[3],&sor_mac[4],&sor_mac[5]);
 
     for(int i=0; i<6; i++)
