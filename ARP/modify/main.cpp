@@ -64,8 +64,8 @@ int main(int argc, char *argv[])
         uint8_t packet[42]; //make complete packet
 
         memset(packet,0,42);
-        memcpy(packet,&tm,6);
-        memcpy(packet+6,&sm,6);
+        memcpy(packet,&sm,6);
+        memcpy(packet+6,&tm,6);
         memcpy(packet+12,&ether_type,2);
         memcpy(packet+14,&ap.ar_hrd,2);
         memcpy(packet+16,&ap.ar_pro,2);
