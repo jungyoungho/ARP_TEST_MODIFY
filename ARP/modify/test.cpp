@@ -131,9 +131,10 @@ int main(int argc, char *argv[])
 /*/////////////////////////////////////////////////////////////////////////////////////////////////////////////////*/reply
  /*
 //--------------------------------------------------------------------------------------ethernet protocol
-        Mac sm,tm;
-        tm=argv[4];
-        sm=argv[5];
+        Mac sm;//,tm;//--
+        //
+        uint8_t tm;
+        sm=argv[4];
 
         u_int16_t ether_type=htons(0x0806);
 //---------------------------------------------------------------------------------------arp protocol
@@ -152,7 +153,7 @@ int main(int argc, char *argv[])
         u_int32_t s_ip;
         inet_pton(AF_INET, arp_sip, &s_ip);
 
-        arp_tm = argv[5];
+        //arp_tm = argv[5];
         char *arp_tip = argv[3];
         u_int32_t t_ip;
         inet_pton(AF_INET, arp_tip, &t_ip);
@@ -161,8 +162,8 @@ int main(int argc, char *argv[])
         uint8_t packet[42]; //make complete packet
 
         memset(packet,0,42);
-        memcpy(packet,&sm,6);
-        memcpy(packet+6,&tm,6);
+        memcpy(packet,&tm,6);
+        memcpy(packet+6,&sm,6);
         memcpy(packet+12,&ether_type,2);
         memcpy(packet+14,&ap.ar_hrd,2);
         memcpy(packet+16,&ap.ar_pro,2);
