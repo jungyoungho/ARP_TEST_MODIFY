@@ -26,8 +26,14 @@ struct makearphdr
 int main(int argc, char *argv[])
 {
     
-    //make request
+    if(argc != 5) //fix 4!!
+    {
+        printf("you must enter 4 parameter!!\n ");
+        printf(" <dev> <sender ip> <target ip> \n");
+        return 0;
+    }
     char *dev=argv[1];
+    //make request
     /* auto check idea -> auto check success but string..
     FILE *mymac;
     char buff[1024];
@@ -44,8 +50,10 @@ int main(int argc, char *argv[])
 
 */
     Mac des_mac;
-    des_mac="ff:ff:ff:ff:ff:ff"; //broadcast
-    uint8_t sor_mac;//auto check..
+    des_mac="ff:ff:ff:ff:ff:ff";
+
+    Mac sor_mac; //auto check..         <-fix
+    sor_mac=argv[4];//                  <-fix
 
     uint16_t etype = htons(0x0806);
 
@@ -57,13 +65,13 @@ int main(int argc, char *argv[])
     rq.ar_pln = 0x04;
     rq.ar_op  = htons(0x0001);
 
-    uint8_t arpsm;//auto check;
-
-
     char *seip=argv[2];
     uint32_t asip;
     inet_pton(AF_INET, seip, &asip);
 
+    Mac arpsm;//auto check..    <-fix
+    arpsm=argv[4];//            <-fix
+    
     Mac arptm;
     arptm = "ff:ff:ff:ff:ff:ff";//broadcast
 
@@ -102,15 +110,20 @@ int main(int argc, char *argv[])
     {
         fprintf(stderr,"\n Error sending the packet:\n",pcap_geterr(fp));
     }
+  /*  ////////////////////////////////////////////////////////////////////*/ -->get reply info -> target mac
+    const u_char *pkt_data;
+    struct pcap_pkthdr *header;
 
-/*
-        if(argc != 6)
+    int res;
+    while((res=pcap_next_ex(fp, &header, &pkt_data))>=0)
+    {
+        if(res==1)
         {
-            printf("you must enter 6 parameter!!\n ");
-            printf(" <dev> <sender ip> <target ip> <sender mac> <target mac>\n");
-            return 0;
+            call(0,header, pkt_data); // get reply data -> target mac
         }
-        char *dev=argv[1];
+        break;
+    }
+/* reply
 //--------------------------------------------------------------------------------------ethernet protocol
         Mac sm,tm;
         tm=argv[4];
