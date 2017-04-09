@@ -22,7 +22,7 @@ struct makearphdr
     uint8_t ar_pln;
     uint16_t ar_op;
 };
-uint8_t my_mac(u_int8_t a[]);//
+void my_mac(u_int8_t a[]);//
 
 void make_t_mac(const u_char *packet);//
 
@@ -133,7 +133,7 @@ int main(int argc, char *argv[])
 //--------------------------------------------------------------------------------------ethernet protocol
         Mac sm;//,tm;//--
         //
-        uint8_t tm;
+        //uint8_t tm;
         sm=argv[4];
 
         u_int16_t ether_type=htons(0x0806);
@@ -198,7 +198,7 @@ void make_t_mac(const u_char *packet)
     my_mac(ep->ether_shost);//------modify test
 }
 
-uint8_t my_mac(u_int8_t a[]) //del later
+void my_mac(u_int8_t a[]) //del later
 {
     uint8_t t_m[6];
     for (int i = 0; i < 6; i++)
@@ -207,5 +207,4 @@ uint8_t my_mac(u_int8_t a[]) //del later
         printf("%02x",t_m[i]);
     }
     printf("\n");
-    return *t_m;
 }
