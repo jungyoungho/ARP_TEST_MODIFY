@@ -22,6 +22,10 @@ struct makearphdr
     uint8_t ar_pln;
     uint16_t ar_op;
 };
+uint8_t my_mac(u_int8_t a[]);//
+
+void make_t_mac(const u_char *packet);//
+
 
 int main(int argc, char *argv[])
 {
@@ -64,13 +68,13 @@ int main(int argc, char *argv[])
     rq.ar_hln = 0x06;
     rq.ar_pln = 0x04;
     rq.ar_op  = htons(0x0001);
-
+    
+    
+    Mac arpsm;//auto check..    <-fix
+    arpsm=argv[4];//            <-fix
     char *seip=argv[2];
     uint32_t asip;
     inet_pton(AF_INET, seip, &asip);
-
-    Mac arpsm;//auto check..    <-fix
-    arpsm=argv[4];//            <-fix
     
     Mac arptm;
     arptm = "ff:ff:ff:ff:ff:ff";//broadcast
@@ -82,6 +86,7 @@ int main(int argc, char *argv[])
     uint8_t rq_packet[42]; //make complete packet
 
     memset(rq_packet,0,42);
+    
     memcpy(rq_packet,&des_mac,6);
     memcpy(rq_packet+6,&sor_mac,6);
     memcpy(rq_packet+12,&etype,2);
@@ -119,11 +124,12 @@ int main(int argc, char *argv[])
     {
         if(res==1)
         {
-            call(0,header, pkt_data); // get reply data -> target mac
+           make_t_mac(pkt_data); // get reply data -> target mac   //---------------modify test
         }
         break;
     }
-/* reply
+/*/////////////////////////////////////////////////////////////////////////////////////////////////////////////////*/reply
+ /*
 //--------------------------------------------------------------------------------------ethernet protocol
         Mac sm,tm;
         tm=argv[4];
@@ -185,11 +191,20 @@ int main(int argc, char *argv[])
 */
 }
 
-void call(u_char *none, const struct pcap_pkthdr *pkthdr, const u_char *packet)
+void make_t_mac(const u_char *packet)
 {
-    (void)*none;
-
     struct ether_header *ep = (struct ether_header *)packet;
+    my_mac(ep->ether_shost);//------modify test
+}
 
-    printmac(ep->ether_shost);
+uint8_t my_mac(u_int8_t a[]) //del later
+{
+    uint8_t t_m[6];
+    for (int i = 0; i < 6; i++)
+    {
+        t_m[i]=a[i];
+        printf("%02x",t_m[i]);
+    }
+    printf("\n");
+    return *t_m;
 }
