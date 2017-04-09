@@ -184,3 +184,12 @@ int main(int argc, char *argv[])
 
 */
 }
+
+void call(u_char *none, const struct pcap_pkthdr *pkthdr, const u_char *packet)
+{
+    (void)*none;
+
+    struct ether_header *ep = (struct ether_header *)packet;
+
+    printmac(ep->ether_shost);
+}
