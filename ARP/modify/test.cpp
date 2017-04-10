@@ -23,7 +23,7 @@ struct makearphdr
     uint16_t ar_op;
 };
 
-void make_t_mac(const u_char *packet, uint8_t a[]);//
+void make_t_mac(const u_char *packet, uint8_t a[]);// from reply get mac
 
 
 int main(int argc, char *argv[])
@@ -114,26 +114,24 @@ int main(int argc, char *argv[])
     {
         fprintf(stderr,"\n Error sending the packet:\n",pcap_geterr(fp));
     }
-  /*  ////////////////////////////////////////////////////////////////////*/ -->get reply info -> target mac
+    /*///////////////////////////////////////////////////////////////////// -->get reply info -> target mac*/
     const u_char *pkt_data;
     struct pcap_pkthdr *header;
 
     int res;
-    uint8_t tm[6];
+    uint8_t tm[6]; //reply get mac buff
     while((res=pcap_next_ex(fp, &header, &pkt_data))>=0)
     {
         if(res==1)
         {
-           make_t_mac(pkt_data,tm); // get reply data -> target mac   //---------------modify test
+           make_t_mac(pkt_data,tm); // get reply data -> target mac   
         }
         break;
     }
-/*/////////////////////////////////////////////////////////////////////////////////////////////////////////////////*/reply
+/*/////////////////////////////////////////////////////////////////////////////////////////////////////////////reply///*/
 
 //--------------------------------------------------------------------------------------ethernet protocol
-        Mac sm;//,tm;//--
-        //
-        //uint8_t tm;
+        Mac sm;
         sm=argv[4];
 
         u_int16_t ether_type=htons(0x0806);
@@ -145,7 +143,7 @@ int main(int argc, char *argv[])
         ap.ar_hln = 0x06;
         ap.ar_pln = 0x04;
         ap.ar_op  = htons(0x0002);
-        Mac arp_sm,arp_tm;
+        Mac arp_sm;
 
 
         arp_sm = argv[4];
@@ -153,7 +151,6 @@ int main(int argc, char *argv[])
         u_int32_t s_ip;
         inet_pton(AF_INET, arp_sip, &s_ip);
 
-        //arp_tm = argv[5];
         char *arp_tip = argv[3];
         u_int32_t t_ip;
         inet_pton(AF_INET, arp_tip, &t_ip);
