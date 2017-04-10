@@ -175,18 +175,18 @@ int main(int argc, char *argv[])
         memcpy(packet+32,&arp_tm,6);
         memcpy(packet+38,&t_ip,4);
 
-        pcap_t *fp;
+        pcap_t *fpp;
         char errbuf[PCAP_ERRBUF_SIZE];
         //---------------------------------------------------------------------------------------send arp
-        fp=pcap_open_live(dev,BUFSIZ,0,1,errbuf);
-        if(fp==NULL)
+        fpp=pcap_open_live(dev,BUFSIZ,0,1,errbuf);
+        if(fpp==NULL)
         {
             printf("%s\n",errbuf);
             return 0;
         }
-        if(pcap_sendpacket(fp,(u_char*)packet,42) != 0)
+        if(pcap_sendpacket(fpp,(u_char*)packet,42) != 0)
         {
-            fprintf(stderr,"\n Error sending the packet:\n",pcap_geterr(fp));
+            fprintf(stderr,"\n Error sending the packet:\n",pcap_geterr(fpp));
         }
 
 */
