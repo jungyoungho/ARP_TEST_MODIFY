@@ -8,5 +8,3 @@ Mac& Mac::operator =(const char *str){
 
     return *this;
 }
-
-
