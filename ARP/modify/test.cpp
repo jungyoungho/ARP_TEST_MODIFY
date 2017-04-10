@@ -198,6 +198,7 @@ void make_t_mac(const u_char *packet, uint8_t a[])
 {
     struct ether_header *ep = (struct ether_header *)packet;
     my_mac(ep->ether_shost);//------modify test
+    memcpy(a,ep->ether_shost,6);
 }
 
 void my_mac(u_int8_t a[]) //del later
