@@ -36,7 +36,7 @@ int main(int argc, char *argv[])
         return 0;
     }
     char *dev=argv[1];
-    //make request
+     /*----------------------------------------------------------------------------make request*/
     /* auto check idea -> auto check success but string..
     FILE *mymac;
     char buff[1024];
