@@ -22,7 +22,6 @@ struct makearphdr
     uint8_t ar_pln;
     uint16_t ar_op;
 };
-void my_mac(u_int8_t a[]);//
 
 void make_t_mac(const u_char *packet, uint8_t a[]);//
 
@@ -129,9 +128,8 @@ int main(int argc, char *argv[])
         }
         break;
     }
-    my_mac(tm);
 /*/////////////////////////////////////////////////////////////////////////////////////////////////////////////////*/reply
- /*
+
 //--------------------------------------------------------------------------------------ethernet protocol
         Mac sm;//,tm;//--
         //
@@ -174,7 +172,7 @@ int main(int argc, char *argv[])
         memcpy(packet+20,&ap.ar_op,2);
         memcpy(packet+22,&arp_sm,6);
         memcpy(packet+28,&s_ip,4);
-        memcpy(packet+32,&arp_tm,6);
+        memcpy(packet+32,&tm,6); //arp_tm=tm;
         memcpy(packet+38,&t_ip,4);
 
         pcap_t *fpp;
@@ -190,24 +188,11 @@ int main(int argc, char *argv[])
         {
             fprintf(stderr,"\n Error sending the packet:\n",pcap_geterr(fpp));
         }
-
-*/
 }
 
 void make_t_mac(const u_char *packet, uint8_t a[])
 {
     struct ether_header *ep = (struct ether_header *)packet;
-    my_mac(ep->ether_shost);//------modify test
     memcpy(a,ep->ether_shost,6);
 }
 
-void my_mac(u_int8_t a[]) //del later
-{
-    uint8_t t_m[6];
-    for (int i = 0; i < 6; i++)
-    {
-        t_m[i]=a[i];
-        printf("%02x",t_m[i]);
-    }
-    printf("\n");
-}
