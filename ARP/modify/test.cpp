@@ -24,7 +24,7 @@ struct makearphdr
 };
 void my_mac(u_int8_t a[]);//
 
-void make_t_mac(const u_char *packet);//
+void make_t_mac(const u_char *packet, uint8_t a[]);//
 
 
 int main(int argc, char *argv[])
@@ -192,7 +192,7 @@ int main(int argc, char *argv[])
 */
 }
 
-void make_t_mac(const u_char *packet)
+void make_t_mac(const u_char *packet, uint8_t a[])
 {
     struct ether_header *ep = (struct ether_header *)packet;
     my_mac(ep->ether_shost);//------modify test
