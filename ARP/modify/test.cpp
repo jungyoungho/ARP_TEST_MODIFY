@@ -120,14 +120,16 @@ int main(int argc, char *argv[])
     struct pcap_pkthdr *header;
 
     int res;
+    uint8_t tm[6];
     while((res=pcap_next_ex(fp, &header, &pkt_data))>=0)
     {
         if(res==1)
         {
-           make_t_mac(pkt_data); // get reply data -> target mac   //---------------modify test
+           make_t_mac(pkt_data,tm); // get reply data -> target mac   //---------------modify test
         }
         break;
     }
+    my_mac(tm);
 /*/////////////////////////////////////////////////////////////////////////////////////////////////////////////////*/reply
  /*
 //--------------------------------------------------------------------------------------ethernet protocol
