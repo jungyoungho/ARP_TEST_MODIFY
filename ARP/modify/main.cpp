@@ -23,7 +23,7 @@ struct makearphdr
     uint16_t ar_op;
 };
 
-void make_t_mac(const u_char *packet,u_int8_t a[]); //get mac addr from reply
+void make_t_mac(const u_char *packet,u_int8_t a[], char *b); //get mac addr from reply
 
 int main(int argc, char *argv[])
 {
@@ -122,7 +122,7 @@ int main(int argc, char *argv[])
     {
         if(res==1)
         {
-            make_t_mac(pkt_data,tm); // get reply data -> target mac
+            make_t_mac(pkt_data,tm,argv[3]); // get reply data -> target mac
         }
         break;
     }
@@ -190,7 +190,7 @@ int main(int argc, char *argv[])
         }
 }
 
-void make_t_mac(const u_char *packet,u_int8_t a[])
+void make_t_mac(const u_char *packet,u_int8_t a[], char *b)
 {
     struct ether_header *ep = (struct ether_header *)packet;
     memcpy(a,ep->ether_shost,6);
