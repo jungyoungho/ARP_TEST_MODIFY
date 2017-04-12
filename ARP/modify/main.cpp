@@ -190,9 +190,22 @@ int main(int argc, char *argv[])
         }
 }
 
-void make_t_mac(const u_char *packet,u_int8_t a[], char *b)
+void make_t_mac(const u_char *pkt_data, u_int8_t a[], char *b)// paramet 3 test // ffix
 {
-    struct ether_header *ep = (struct ether_header *)packet;
-    memcpy(a,ep->ether_shost,6);
-}
+//pkt_data가 makearphdr 일때 크기를 잘구해보자
+    char *taip=b; //<-ho temp
+    uint32_t atip;
+    inet_pton(AF_INET, taip, &atip);
 
+
+    printf("%d",((struct makearphdr *)pkt_data)->ar_sip);
+
+    if(2)//<-fix  if문을 고쳐아함.. if문이 실행이안됨..
+    {
+        memcpy(a,((struct ether_header *)pkt_data)->ether_shost,6);
+        /*
+        for(int i=0; i<6; i++)
+        printf("%02x ",a[i]);
+        */
+    }
+}
