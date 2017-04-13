@@ -192,20 +192,36 @@ int main(int argc, char *argv[])
 
 void make_t_mac(const u_char *pkt_data, u_int8_t a[], char *b)// paramet 3 test // ffix
 {
-//pkt_data가 makearphdr 일때 크기를 잘구해보자
-    char *taip=b; //<-ho temp
-    uint32_t atip;
-    inet_pton(AF_INET, taip, &atip);
+//pkt_data가 makearphdr 일때 크기를 잘구해보자 //makearphdr에서 pkt_data 의 ar_sip가 제대로들어왓나 확인
+
+    u_int32_t match_sip; //<- standardu
+    match_sip=inet_addr(b);
+    printf("%x\n",match_sip);
+
+    /*
+    const u_char **pkt_data1=NULL;
+    pkt_data1=&pkt_data+4;
+    */
+    //(MARP*)pkt_data;
+    printf("%02x%02x%02x%02x",*(pkt_data+31),*(pkt_data+30),*(pkt_data+29),*(pkt_data+28));
+    printf("\n");
+    /*
+    for(int i=0; i<42; i++)
+    printf("%02x ",((MARP*)pkt_data)->ar_sip[i]);
+  printf("\n\n");
+    for(int i=0; i<42; i++)
+    printf("%02x ",((MARP*)*pkt_data1)->ar_sip[i]);
+ printf("\n\n");
+*/
+
+    //hi=htonl(((MARP *)pkt_data)->ar_sip);
+    //memcpy((u_int8_t*)hi,((MARP *)pkt_data)->ar_sip+14,4);//
 
 
-    printf("%d",((struct makearphdr *)pkt_data)->ar_sip);
-
-    if(2)//<-fix  if문을 고쳐아함.. if문이 실행이안됨..
+/*
+    if(match_sip==)//
     {
-        memcpy(a,((struct ether_header *)pkt_data)->ether_shost,6);
-        /*
-        for(int i=0; i<6; i++)
-        printf("%02x ",a[i]);
-        */
+        memcpy(a,((struct ether_header *)pkt_data)->ether_shost,6);  //<-good
     }
+*/
 }
