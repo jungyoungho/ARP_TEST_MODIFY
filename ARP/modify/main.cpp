@@ -110,13 +110,14 @@ int main(int argc, char *argv[])
     u_int8_t tm[6]; //tm, arp_tm -> get reply from mac addr
     const u_char *pkt_data; //
     struct pcap_pkthdr *header; //
-        while((res=pcap_next_ex(fp, &header, &pkt_data))>=0)
+    
+    while((res=pcap_next_ex(fp, &header, &pkt_data))>=0)
     {
         if(res==1)
         {
             make_t_mac(pkt_data,tm,argv[3]); // get reply data -> target mac //<-ho temp
-        }
-        break;
+            break;  //<-fix
+        }    
     }
 
 
