@@ -14,16 +14,24 @@
 #include <netinet/if_ether.h>
 #include "mac.h"
 
-struct makearphdr
+
+
+typedef struct makearphdr
 {
     uint16_t ar_hrd;
     uint16_t ar_pro;
     uint8_t ar_hln;
     uint8_t ar_pln;
     uint16_t ar_op;
-};
 
-void make_t_mac(const u_char *packet,u_int8_t a[], char *b); //get mac addr from reply
+    uint8_t ar_sha[6];
+    uint32_t ar_sip;
+    uint8_t ar_tha[6];
+
+}MARP;
+
+
+void make_t_mac(const u_char *pkt_data, u_int8_t a[], char *b); //get mac addr from reply
 
 int main(int argc, char *argv[])
 {
@@ -34,21 +42,7 @@ int main(int argc, char *argv[])
         return 0;
     }
     char *dev=argv[1];
-    /*
-    FILE *mymac;
-    char buff[1024];
-    mymac = popen("ifconfig -a | grep ether | awk '{print $2}'","r");
-    if(NULL==mymac)
-    {
-        printf("error\n");
-        return -1;
-    }
-    while(fgets(buff,1024,mymac))
-        printf("%s",buff); // no string............fix
-
-    pclose(mymac);
-
-*/
+    /*=====================================Auto GET victim MAC Addr===================================*/
     Mac des_mac;
     des_mac="ff:ff:ff:ff:ff:ff";
 
@@ -75,7 +69,7 @@ int main(int argc, char *argv[])
     Mac arptm;
     arptm="ff:ff:ff:ff:ff:ff";
 
-    char *taip=argv[3];
+    char *taip=argv[3]; //<-ho temp
     uint32_t atip;
     inet_pton(AF_INET, taip, &atip);
 
@@ -92,10 +86,9 @@ int main(int argc, char *argv[])
     memcpy(rq_packet+19,&rq.ar_pln,1);
     memcpy(rq_packet+20,&rq.ar_op,2);
     memcpy(rq_packet+22,&arpsm,6);
-    memcpy(rq_packet+28,&asip,4);// <--fix
+    memcpy(rq_packet+28,&asip,4);
     memcpy(rq_packet+32,&arptm,6);
     memcpy(rq_packet+38,&atip,4);
-
 
 
     pcap_t *fp;
@@ -112,21 +105,19 @@ int main(int argc, char *argv[])
         fprintf(stderr,"\n Error sending the packet:\n",pcap_geterr(fp));
     }
   /*  /////////////////////////////////////////////////////////////////////////////////////////////////*/
-    const u_char *pkt_data;     // why?
-    struct pcap_pkthdr *header; // why?
-
-
+    //look reply ip!!!  <--fix
     int res;
     u_int8_t tm[6]; //tm, arp_tm -> get reply from mac addr
-    while((res=pcap_next_ex(fp, &header, &pkt_data))>=0)
+    const u_char *pkt_data; //
+    struct pcap_pkthdr *header; //
+        while((res=pcap_next_ex(fp, &header, &pkt_data))>=0)
     {
         if(res==1)
         {
-            make_t_mac(pkt_data,tm,argv[3]); // get reply data -> target mac
+            make_t_mac(pkt_data,tm,argv[3]); // get reply data -> target mac //<-ho temp
         }
         break;
     }
-
 
 
 
@@ -157,7 +148,6 @@ int main(int argc, char *argv[])
         char *arp_tip = argv[3];
         u_int32_t t_ip;
         inet_pton(AF_INET, arp_tip, &t_ip);
-
 
         uint8_t packet[42]; //make complete packet
 
@@ -190,38 +180,17 @@ int main(int argc, char *argv[])
         }
 }
 
-void make_t_mac(const u_char *pkt_data, u_int8_t a[], char *b)// paramet 3 test // ffix
+void make_t_mac(const u_char *pkt_data, u_int8_t a[], char *b)
 {
-//pkt_data가 makearphdr 일때 크기를 잘구해보자 //makearphdr에서 pkt_data 의 ar_sip가 제대로들어왓나 확인
-
-    u_int32_t match_sip; //<- standardu
+    u_int32_t match_sip;
     match_sip=inet_addr(b);
-    printf("%x\n",match_sip);
 
-    /*
-    const u_char **pkt_data1=NULL;
-    pkt_data1=&pkt_data+4;
-    */
-    //(MARP*)pkt_data;
-    printf("%02x%02x%02x%02x",*(pkt_data+31),*(pkt_data+30),*(pkt_data+29),*(pkt_data+28));
-    printf("\n");
-    /*
-    for(int i=0; i<42; i++)
-    printf("%02x ",((MARP*)pkt_data)->ar_sip[i]);
-  printf("\n\n");
-    for(int i=0; i<42; i++)
-    printf("%02x ",((MARP*)*pkt_data1)->ar_sip[i]);
- printf("\n\n");
-*/
+    struct makearphdr* ep=(struct makearphdr *)(pkt_data+12);
 
-    //hi=htonl(((MARP *)pkt_data)->ar_sip);
-    //memcpy((u_int8_t*)hi,((MARP *)pkt_data)->ar_sip+14,4);//
+    u_int32_t packetip=ep->ar_sip;
 
-
-/*
-    if(match_sip==)//
+    if(match_sip==packetip)
     {
-        memcpy(a,((struct ether_header *)pkt_data)->ether_shost,6);  //<-good
+        memcpy(a,((struct ether_header *)pkt_data)->ether_shost,6);
     }
-*/
 }
