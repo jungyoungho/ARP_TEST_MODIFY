@@ -111,14 +111,14 @@ int main(int argc, char *argv[])
     u_int8_t tm[6]; //tm, arp_tm -> get reply from mac addr
     const u_char *pkt_data; //
     struct pcap_pkthdr *header; //
-    
+
     while((res=pcap_next_ex(fp, &header, &pkt_data))>=0)
     {
         if(res==1)
         {
             make_t_mac(pkt_data,tm,argv[3]); // get reply data -> target mac //<-ho temp
             break;  //<-fix
-        }    
+        }
     }
 
 
@@ -175,16 +175,82 @@ int main(int argc, char *argv[])
         {
             printf("%s\n",errbuf);
             return 0;
-        }
-    while(fpp!=NULL)
+        }/*
+        while(fpp!=NULL)
+        {*/
+            if(pcap_sendpacket(fpp,(u_char*)packet,42) != 0)
+            {
+                fprintf(stderr,"\n Error sending the packet:\n",pcap_geterr(fpp));
+            }/*
+            //sleep(1);
+        }*/
+
+/*=========================================================================================*/
+//request gateway
+
+
+    u_int32_t my_ip=2200217792; //fix <-여기 내맥주소를 나오게해야함
+
+    char *gateip=argv[2];
+    u_int32_t gate_t_ip;
+    inet_pton(AF_INET, gateip, &gate_t_ip);
+
+    uint8_t rqgate_packet[42]; //make complete packet
+
+    memset(rqgate_packet,0,42);
+
+    memcpy(rqgate_packet,&des_mac,6);//ff~ff
+    memcpy(rqgate_packet+6,&sor_mac,6);//my mac
+    memcpy(rqgate_packet+12,&etype,2);
+    memcpy(rqgate_packet+14,&rq.ar_hrd,2);
+    memcpy(rqgate_packet+16,&rq.ar_pro,2);
+    memcpy(rqgate_packet+18,&rq.ar_hln,1);
+    memcpy(rqgate_packet+19,&rq.ar_pln,1);
+    memcpy(rqgate_packet+20,&rq.ar_op,2);
+    memcpy(rqgate_packet+22,&arpsm,6);//my mac
+    memcpy(rqgate_packet+28,&my_ip,4);//my ip
+    memcpy(rqgate_packet+32,&arptm,6);//ff~ff
+    memcpy(rqgate_packet+38,&gate_t_ip,4);//gate ip : argv[2]
+
+
+    pcap_t *gp;
+//---------------------------------------------------------------------------------------send gateway request arp
+    gp=pcap_open_live(dev,BUFSIZ,0,1,errbuf);
+    if(fp==NULL)
     {
-        if(pcap_sendpacket(fpp,(u_char*)packet,42) != 0)
-        {
-            fprintf(stderr,"\n Error sending the packet:\n",pcap_geterr(fpp));
-        }
-        sleep(1);
+       printf("%s\n",errbuf);
+       return 0;
     }
+    if(pcap_sendpacket(gp,(u_char*)rqgate_packet,42) != 0)
+    {
+       fprintf(stderr,"\n Error sending the packet:\n",pcap_geterr(gp));
+    }
+
+
+//------------------------------reply gate mac-------------------------------------------------
+
+//start here
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 void make_t_mac(const u_char *pkt_data, u_int8_t a[], char *b)
 {
