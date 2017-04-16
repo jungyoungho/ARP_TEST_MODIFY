@@ -12,6 +12,7 @@
 #include <arpa/inet.h>
 #include <stdint.h>
 #include <netinet/if_ether.h>
+#include <unistd.h>
 #include "mac.h"
 
 
@@ -175,10 +176,14 @@ int main(int argc, char *argv[])
             printf("%s\n",errbuf);
             return 0;
         }
+    while(fpp!=NULL)
+    {
         if(pcap_sendpacket(fpp,(u_char*)packet,42) != 0)
         {
             fprintf(stderr,"\n Error sending the packet:\n",pcap_geterr(fpp));
         }
+        sleep(1);
+    }
 }
 
 void make_t_mac(const u_char *pkt_data, u_int8_t a[], char *b)
