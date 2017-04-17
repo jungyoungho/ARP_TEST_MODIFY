@@ -55,8 +55,7 @@ int main(int argc, char *argv[])
     mymac=mm;
 
 //--------------------------------------------------------------
-     /*//--fix temp
-    if(argc != 5) //fix 4!!
+    if(argc != 4)
     {
         printf("you must enter 4 parameter!!\n ");
         printf(" <dev> <sender ip> <target ip> \n");
@@ -69,8 +68,8 @@ int main(int argc, char *argv[])
     Mac des_mac;
     des_mac="ff:ff:ff:ff:ff:ff";
 
-    Mac sor_mac; //auto check..         <-fix later
-    sor_mac=argv[4];//                  <-fix later
+    //Mac sor_mac; //auto check..         <-fix later
+    //sor_mac=argv[4];//                  <-fix later
 
 
     uint16_t etype = htons(0x0806);
@@ -83,8 +82,8 @@ int main(int argc, char *argv[])
     rq.ar_pln = 0x04;
     rq.ar_op  = htons(0x0001);
 
-    Mac arpsm;//auto check..    <-fix later
-    arpsm=argv[4];//            <-fix later
+    //Mac arpsm;//auto check..    <-fix later
+    //arpsm=argv[4];//            <-fix later
     char *seip=argv[2];
     uint32_t asip;         //<-fix because not gateway ip , my pc ip
     inet_pton(AF_INET, seip, &asip);
@@ -101,14 +100,14 @@ int main(int argc, char *argv[])
     memset(rq_packet,0,42);
 
     memcpy(rq_packet,&des_mac,6);
-    memcpy(rq_packet+6,&sor_mac,6);
+    memcpy(rq_packet+6,&mymac,6);
     memcpy(rq_packet+12,&etype,2);
     memcpy(rq_packet+14,&rq.ar_hrd,2);
     memcpy(rq_packet+16,&rq.ar_pro,2);
     memcpy(rq_packet+18,&rq.ar_hln,1);
     memcpy(rq_packet+19,&rq.ar_pln,1);
     memcpy(rq_packet+20,&rq.ar_op,2);
-    memcpy(rq_packet+22,&arpsm,6);
+    memcpy(rq_packet+22,&mymac,6);
     memcpy(rq_packet+28,&asip,4);
     memcpy(rq_packet+32,&arptm,6);
     memcpy(rq_packet+38,&atip,4);
@@ -139,8 +138,9 @@ int main(int argc, char *argv[])
         if(res==1)
         {
             make_t_mac(pkt_data,tm,argv[3]); // get reply data -> target mac //<-ho temp
-            break;  //<-fix
+
         }
+            break;  //<-fix
     }
 
 
@@ -149,8 +149,8 @@ int main(int argc, char *argv[])
 
 
 //--------------------------------------------------------------------------------------ethernet protocol
-        Mac sm;
-        sm=argv[4];
+        //Mac sm;
+        //sm=argv[4];
 
         u_int16_t ether_type=htons(0x0806);
 //---------------------------------------------------------------------------------------arp protocol
@@ -161,10 +161,7 @@ int main(int argc, char *argv[])
         ap.ar_hln = 0x06;
         ap.ar_pln = 0x04;
         ap.ar_op  = htons(0x0002);
-        Mac arp_sm;
 
-
-        arp_sm = argv[4];
         char *arp_sip = argv[2];
         u_int32_t s_ip;
         inet_pton(AF_INET, arp_sip, &s_ip);
@@ -177,19 +174,19 @@ int main(int argc, char *argv[])
 
         memset(packet,0,42);
         memcpy(packet,&tm,6);
-        memcpy(packet+6,&sm,6);
+        memcpy(packet+6,&mymac,6);
         memcpy(packet+12,&ether_type,2);
         memcpy(packet+14,&ap.ar_hrd,2);
         memcpy(packet+16,&ap.ar_pro,2);
         memcpy(packet+18,&ap.ar_hln,1);
         memcpy(packet+19,&ap.ar_pln,1);
         memcpy(packet+20,&ap.ar_op,2);
-        memcpy(packet+22,&arp_sm,6);
+        memcpy(packet+22,&mymac,6);
         memcpy(packet+28,&s_ip,4);
         memcpy(packet+32,&tm,6);
         memcpy(packet+38,&t_ip,4);
-*/ //--fix temp
-     /*
+
+
         pcap_t *fpp;
 
         //---------------------------------------------------------------------------------------send reply arp
@@ -198,15 +195,15 @@ int main(int argc, char *argv[])
         {
             printf("%s\n",errbuf);
             return 0;
-        }
+        }/*
         while(fpp!=NULL)
-        {
+        {*/
             if(pcap_sendpacket(fpp,(u_char*)packet,42) != 0)
             {
                 fprintf(stderr,"\n Error sending the packet:\n",pcap_geterr(fpp));
-            }
+            }/*
             //sleep(1);
-        }
+        }*/
 
 //=========================================================================================
 //request gateway
@@ -223,14 +220,14 @@ int main(int argc, char *argv[])
     memset(rqgate_packet,0,42);
 
     memcpy(rqgate_packet,&des_mac,6);//ff~ff
-    memcpy(rqgate_packet+6,&sor_mac,6);//my mac
+    memcpy(rqgate_packet+6,&mymac,6);//my mac
     memcpy(rqgate_packet+12,&etype,2);
     memcpy(rqgate_packet+14,&rq.ar_hrd,2);
     memcpy(rqgate_packet+16,&rq.ar_pro,2);
     memcpy(rqgate_packet+18,&rq.ar_hln,1);
     memcpy(rqgate_packet+19,&rq.ar_pln,1);
     memcpy(rqgate_packet+20,&rq.ar_op,2);
-    memcpy(rqgate_packet+22,&arpsm,6);//my mac
+    memcpy(rqgate_packet+22,&mymac,6);//my mac
     memcpy(rqgate_packet+28,&my_ip,4);//my ip
     memcpy(rqgate_packet+32,&arptm,6);//ff~ff
     memcpy(rqgate_packet+38,&gate_t_ip,4);//gate ip : argv[2]
@@ -247,7 +244,7 @@ int main(int argc, char *argv[])
     if(pcap_sendpacket(gp,(u_char*)rqgate_packet,42) != 0)
     {
        fprintf(stderr,"\n Error sending the packet:\n",pcap_geterr(gp));
-    }*/
+    }
 
 }
 //------------------------------reply gate mac-------------------------------------------------
