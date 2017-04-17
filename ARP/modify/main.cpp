@@ -36,6 +36,27 @@ void make_t_mac(const u_char *pkt_data, u_int8_t a[], char *b); //get mac addr f
 
 int main(int argc, char *argv[])
 {
+    /*
+    u_char a;
+    a=system("ifconfig -a | grep ether | awk '{print $2}'");
+    sscanf((const char*)a, "%x:%x:%x:%x:%x:%x",&mm[0],&mm[1],&mm[2],&mm[3],&mm[4],&mm[5]);
+
+*/
+    u_int8_t mm[6];//mymac
+    FILE *a;
+    a=popen("ifconfig -a | grep ether | awk '{print $2}'","r");
+
+    if (a == NULL)
+    {
+        perror("error : ");
+        exit(0);
+    }
+    while(fgets((char*)mm, sizeof(a), a) != NULL)
+    {
+        printf("%s", mm);
+    }
+    sscanf((const char*)a, "%x:%x:%x:%x:%x:%x",&mm[0],&mm[1],&mm[2],&mm[3],&mm[4],&mm[5]);
+
     if(argc != 5) //fix 4!!
     {
         printf("you must enter 4 parameter!!\n ");
