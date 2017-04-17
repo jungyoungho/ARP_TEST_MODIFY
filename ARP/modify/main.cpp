@@ -50,7 +50,6 @@ int main(int argc, char *argv[])
     }
 
     fgets((char*)mm,18, a);
-    printf("%s\n", mm);
     Mac mymac;
     mymac=mm;
 
