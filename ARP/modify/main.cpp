@@ -36,7 +36,7 @@ void make_t_mac(const u_char *pkt_data, u_int8_t a[], char *b); //get mac addr f
 
 int main(int argc, char *argv[])
 {
-//--------------------------------------------------------------
+//-------------------------------------------------------------- get my mac!!
 
     char mm[17];//mymac
     FILE *a;
@@ -148,9 +148,6 @@ int main(int argc, char *argv[])
 
 
 //--------------------------------------------------------------------------------------ethernet protocol
-        //Mac sm;
-        //sm=argv[4];
-
         u_int16_t ether_type=htons(0x0806);
 //---------------------------------------------------------------------------------------arp protocol
         struct makearphdr ap;
@@ -235,7 +232,7 @@ int main(int argc, char *argv[])
     pcap_t *gp;
 //---------------------------------------------------------------------------------------send gateway request arp
     gp=pcap_open_live(dev,BUFSIZ,0,1,errbuf);
-    if(fp==NULL)
+    if(gp==NULL)
     {
        printf("%s\n",errbuf);
        return 0;
@@ -245,13 +242,28 @@ int main(int argc, char *argv[])
        fprintf(stderr,"\n Error sending the packet:\n",pcap_geterr(gp));
     }
 
-}
+
 //------------------------------reply gate mac-------------------------------------------------
 
-//start here
+
+    int repl;
+    u_int8_t gatemac[6]; //tm, arp_tm -> get reply from mac addr
+    const u_char *gate_data; //
+    struct pcap_pkthdr *gheader; //
+
+    while((repl=pcap_next_ex(gp, &gheader, &gate_data))>=0)
+    {
+        if(repl==1)
+        {
+            make_t_mac(gate_data,gatemac,argv[2]); // get reply data -> target mac //<-ho temp
+        }
+        break;  //<-fix
+    }
+
+}
 
 
-void make_t_mac(const u_char *pkt_data, u_int8_t a[], char *b)
+void make_t_mac(const u_char *pkt_data, u_int8_t a[], char *b)//아이피를 비교해서 맞을때만 맥주소를 가져오는 함수
 {
     u_int32_t match_sip;
     match_sip=inet_addr(b);
