@@ -17,6 +17,7 @@
 
 
 
+
 typedef struct makearphdr
 {
     uint16_t ar_hrd;
@@ -37,22 +38,21 @@ void make_t_mac(const u_char *pkt_data, u_int8_t a[], char *b); //get mac addr f
 int main(int argc, char *argv[])
 {
 //-------------------------------------------------------------- get my mac!!
-
     char mm[17];//mymac
     FILE *a;
     a=popen("ifconfig -a | grep ether | awk '{print $2}'","r");
 
-
-    if (a == NULL)
-    {
-        perror("error : ");
-        exit(0);
-    }
-
     fgets((char*)mm,18, a);
     Mac mymac;
     mymac=mm;
+//-------------------------------------------------------------- get my ip!!
 
+    FILE *b;
+    b=popen("ip addr | grep 'inet' | grep brd | awk '{printf $2}' | awk -F/ ' {printf $1}'","r");
+    char mip[16];
+    fgets(mip,16,b);
+    u_int32_t mmip;
+    inet_pton(AF_INET, mip, &mmip);
 //--------------------------------------------------------------
     if(argc != 4)
     {
@@ -107,7 +107,7 @@ int main(int argc, char *argv[])
     memcpy(rq_packet+19,&rq.ar_pln,1);
     memcpy(rq_packet+20,&rq.ar_op,2);
     memcpy(rq_packet+22,&mymac,6);
-    memcpy(rq_packet+28,&asip,4);
+    memcpy(rq_packet+28,&mmip,4);
     memcpy(rq_packet+32,&arptm,6);
     memcpy(rq_packet+38,&atip,4);
 
@@ -204,9 +204,6 @@ int main(int argc, char *argv[])
 //=========================================================================================
 //request gateway
 
-
-    u_int32_t my_ip=2200217792; //fix <-여기 내맥주소를 나오게해야함
-
     char *gateip=argv[2];
     u_int32_t gate_t_ip;
     inet_pton(AF_INET, gateip, &gate_t_ip);
@@ -224,7 +221,7 @@ int main(int argc, char *argv[])
     memcpy(rqgate_packet+19,&rq.ar_pln,1);
     memcpy(rqgate_packet+20,&rq.ar_op,2);
     memcpy(rqgate_packet+22,&mymac,6);//my mac
-    memcpy(rqgate_packet+28,&my_ip,4);//my ip
+    memcpy(rqgate_packet+28,&mmip,4);//my ip
     memcpy(rqgate_packet+32,&arptm,6);//ff~ff
     memcpy(rqgate_packet+38,&gate_t_ip,4);//gate ip : argv[2]
 
@@ -259,7 +256,6 @@ int main(int argc, char *argv[])
         }
         break;  //<-fix
     }
-
 }
 
 
