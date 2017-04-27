@@ -108,7 +108,7 @@ int main(int argc, char *argv[])
     memcpy(rq_packet+19,&rq.ar_pln,1);
     memcpy(rq_packet+20,&rq.ar_op,2);
     memcpy(rq_packet+22,&mymac,6);
-    memcpy(rq_packet+28,&asip,4);
+    memcpy(rq_packet+28,&mmip,4);
     memcpy(rq_packet+32,&arptm,6);
     memcpy(rq_packet+38,&atip,4);
 
@@ -140,16 +140,30 @@ int main(int argc, char *argv[])
     const u_char *pkt_data; //
     struct pcap_pkthdr *header; //
 
-    while((res=pcap_next_ex(ph, &header, &pkt_data))>=0)
+    while((res=pcap_next_ex(ph, &header, &pkt_data))>=0)  //<fix here 4/27
     {
         if(res==1)
         {
             make_t_mac(pkt_data,tm,argv[3]); // get reply data -> target mac //<-ho temp
-
+            break;
         }
-            break;  //<-fix
+        else if(res==0)
+        {
+            printf("Time out error\n");
+            continue;
+        }
+        else if(res==-1)
+        {
+            printf("ERROR\n");
+        }
+        else if(res==-2)
+        {
+            printf("End of File\n");
+        }
+        else
+            break;  //<-fix at here
     }
-
+    pcap_close(ph);
 
     //---------------------------------------------------------------------------------------request gateway
 
@@ -200,7 +214,7 @@ int main(int argc, char *argv[])
             }
             break;  //<-fix
         }
-
+        pcap_close(ph);
 
 //-//////////////////////////////////////////////////////infection reply start//////////////////////////////////////////////////////////////
 
@@ -268,6 +282,7 @@ int main(int argc, char *argv[])
         //here in relay;
         infect.join();
 
+         pcap_close(ph);
 
 
 }
