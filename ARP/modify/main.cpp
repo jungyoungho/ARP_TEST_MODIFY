@@ -20,7 +20,7 @@
     #include <pthread.h>
 
 
-    //#pragma pack(push,1)
+ #pragma pack(push,1)
     typedef struct makearphdr
     {
         uint16_t ar_hrd;
@@ -32,9 +32,9 @@
         uint8_t ar_sha[6];
         uint32_t ar_sip;
         uint8_t ar_tha[6];
-
+        uint32_t ar_tip;
     }MARP;
-    //#pragma pack(pop)
+ #pragma pack(pop)
 
 void hi(int a);
     void make_t_mac(const u_char *pkt_data, u_int8_t a[], char *b); //get mac addr from reply
@@ -260,15 +260,17 @@ void hi(int a);
             //---------------------------------------------------------------------------------------send relay
             const u_char *relay_data;
             struct pcap_pkthdr *relay_header;
-
+            help_relay(ph,relay_data,argv[2]); //test
             int s_vic = pcap_next_ex(ph, &relay_header, &relay_data);
-            
-            std :: thread infect(&infect_start,ph,packet,gatemac,tm);
-            std :: thread relay(&help_relay,ph,relay_data,argv[2]);
-            infect.join();
-            relay.join();
 
+            while(ph!=0)
+            {
+                std :: thread infect(&infect_start,ph,packet,gatemac,tm);
+                std :: thread relay(&help_relay,ph,relay_data,argv[2]);
+                infect.join();
+                relay.join();
 
+            }
 
 
 
@@ -285,7 +287,7 @@ void hi(int a);
         u_int32_t match_sip;
         match_sip=inet_addr(b);
 
-        struct makearphdr* ep=(struct makearphdr *)(pkt_data+12);
+        struct makearphdr* ep=(struct makearphdr *)(pkt_data+14);
 
         u_int32_t packetip=ep->ar_sip;
 
@@ -320,16 +322,21 @@ void hi(int a);
 
     void help_relay(pcap_t *a, const u_char *b, char *c) //relay를 할 조건 : gateway ip와 패킷의 도착지 ip가 같아야함
     {
+        /*
             uint32_t match_dip;
             match_dip=inet_addr(c);
             uint32_t packet_tip=((struct iphdr*)b)->daddr;
 
             if(match_dip==packet_tip)
+        */
+            uint16_t its_ip = htons(0x0800);
+            uint16_t packet_pro=((struct ether_header*)b)->ether_type;
+
+            if(its_ip==packet_pro)
             {
                 while(a!=NULL)
                 {
                      pcap_sendpacket(a,(u_char*)b,BUFSIZ);
-                     sleep(3);
                 }
 
             }
