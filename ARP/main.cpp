@@ -9,6 +9,7 @@
 #include <netinet/if_ether.h>
 #include <unistd.h>
 #include <thread>
+#include <signal.h>
 
 #pragma pack(push,1)
 struct ho_ether
@@ -37,6 +38,12 @@ struct hoder
 #pragma pack(pop)
 #define BUFSIZE 10000
 
+void (*stop)(int);
+void sigint_handler(int a)
+{
+   printf("%d\nCtrl + C 키를 또 누르시면 종료됩니다.\n",a);
+   signal(SIGINT, stop);
+}
 
 void make_packet(uint8_t *packet,struct hoder name, uint8_t *dhost, uint8_t *shost, uint16_t etype, uint16_t op, uint8_t *smac, uint32_t sip, uint8_t *tmac, uint32_t tip);
 void getmac_from_str_to_bin(char *str,uint8_t *binmac);
@@ -48,6 +55,7 @@ void go_relay(pcap_t *go, uint8_t *mymac, uint8_t *gatemac);
 
 int main(int argc, char *argv[])
 {
+    stop = signal(SIGINT, sigint_handler);
     if(argc!=4)
     {
         printf("***** 인자값이 잘못되었거나 존재하지 않습니다 *****\n");
@@ -189,6 +197,7 @@ void infection(pcap_t *go, uint8_t *infect)
     uint8_t packet[42];
     memcpy(packet,infect,42);
     printf(" INJECTION START !! \n");
+
     while(go!=NULL)
     {
          printf(">> send injection packet\n");
