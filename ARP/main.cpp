@@ -35,7 +35,7 @@ struct hoder
     struct ho_arphdr a;
 };
 #pragma pack(pop)
-#define BUFSIZE 256
+#define BUFSIZE 10000
 
 
 void make_packet(uint8_t *packet,struct hoder name, uint8_t *dhost, uint8_t *shost, uint16_t etype, uint16_t op, uint8_t *smac, uint32_t sip, uint8_t *tmac, uint32_t tip);
