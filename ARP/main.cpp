@@ -196,11 +196,11 @@ void infection(pcap_t *go, uint8_t *infect)
 {
     uint8_t packet[42];
     memcpy(packet,infect,42);
-    printf(" INJECTION START !! \n");
+    printf(" INFECTION START !! \n");
 
     while(go!=NULL)
     {
-         printf(">> send injection packet\n");
+         printf(">> send infection packet\n");
          pcap_sendpacket(go,(const u_char*)packet, sizeof(packet));
          sleep(3);
     }
