@@ -14,6 +14,8 @@ class Widget : public QWidget
 public:
     explicit Widget(QWidget *parent = 0);
     ~Widget();
+     void func(int n);
+     void func2(int n);
 
 private slots:
     void on_Button_500_clicked();
