@@ -234,7 +234,7 @@ void go_relay(pcap_t *go,uint8_t *mymac, uint8_t *gatemac)
                            printf(" >> ACCORD ALL CONDITION << \n");
                            memcpy(ly->e.hoder_shost,mymac,6);
                            memcpy(ly->e.hoder_dhost,gatemac,6);
-                           pcap_sendpacket(go,(u_char*)ly,header->len);
+                           pcap_sendpacket(go,(u_char*)ly,header->caplen);
                            break;
                     }
                 }
